@@ -687,26 +687,13 @@
   
   .scanner.active { display: flex; }
   
-  #reader {
+  #scanner-video {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
+    object-fit: cover;
     background: #000;
-  }
-  
-  #reader video {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-  }
-  
-  #reader > div { border: none !important; }
-  
-  #reader__dashboard,
-  #reader__scan_region img,
-  #reader__header_message {
-    display: none !important;
   }
   
   .scanner-ui {
@@ -1745,7 +1732,7 @@
 
 <!-- SCANNER -->
 <div class="scanner" id="scanner">
-  <div id="reader"></div>
+  <video id="scanner-video" playsinline autoplay muted></video>
   <div class="scanner-ui">
     <div class="scanner-top">
       <button class="close-x" onclick="stopScanner()">✕</button>
@@ -1793,33 +1780,11 @@
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.0/umd/index.min.js"></script>
 <script>
-// ============== LIB LOADER ==============
-// ZXing loader
-window.scanLibReady = new Promise((resolve, reject) => {
-  const cdns = [
-    'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js',
-    'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js'
-  ];
-  let i = 0;
-  function tryNext() {
-    if (i >= cdns.length) { reject(new Error('Aucun CDN accessible')); return; }
-    const s = document.createElement('script');
-    s.src = cdns[i++];
-    s.async = true;
-    s.onload = () => {
-      if (typeof Html5Qrcode !== 'undefined') resolve();
-      else tryNext();
-    };
-    s.onerror = tryNext;
-    document.head.appendChild(s);
-  }
-  tryNext();
-});
-
 // ============== STATE ==============
-let html5QrCode = null;
+let zxingReader = null;
+let zxingControls = null;
 let history = [];
 const MAX_HISTORY = 30;
 
@@ -1911,123 +1876,83 @@ function showToast(msg, opts = {}) {
   window._toastTimer = setTimeout(() => t.classList.remove('show'), opts.duration || 3000);
 }
 
-// ============== SCANNER ==============
+// ============== SCANNER (ZXing - identique à la version qui marche) ==============
 async function startScanner() {
   const scanner = document.getElementById('scanner');
   const statusEl = document.getElementById('scan-status-text');
-  
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    showToast('Ton navigateur ne supporte pas la caméra. Utilise la saisie manuelle.', { error: true });
-    return;
-  }
-  
-  if (!window.isSecureContext && location.protocol !== 'http:' && location.hostname !== 'localhost') {
-    // file:// ne demande pas la perm caméra → message clair
-    if (location.protocol === 'file:') {
-      showToast('Le scan caméra ne fonctionne pas en ouvrant le fichier directement. Héberge l\'appli (Netlify Drop) ou utilise la saisie manuelle.', { error: true, duration: 5000 });
-      return;
-    }
-  }
+  const video = document.getElementById('scanner-video');
   
   scanner.classList.add('active');
-  statusEl.textContent = 'Chargement…';
-  
-  // Charger la lib
-  if (typeof Html5Qrcode === 'undefined') {
-    try {
-      await Promise.race([
-        window.scanLibReady,
-        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 10000))
-      ]);
-    } catch (e) {
-      stopScanner();
-      showToast('Librairie de scan inaccessible. Vérifie ta connexion internet.', { error: true, duration: 4000 });
-      return;
-    }
-  }
-  
-  if (typeof Html5Qrcode === 'undefined') {
-    stopScanner();
-    showToast('Scanner indisponible. Utilise la saisie manuelle.', { error: true });
-    return;
-  }
-  
-  statusEl.textContent = 'Démarrage caméra…';
+  statusEl.textContent = 'Initialisation caméra…';
   
   try {
-    html5QrCode = new Html5Qrcode("reader", { verbose: false });
+    const ZX = window.ZXing || window.ZXingBrowser;
     
-    const config = {
-      fps: 10,
-      qrbox: { width: 280, height: 180 },
-      aspectRatio: 1.7777,
-      formatsToSupport: [
-        Html5QrcodeSupportedFormats.EAN_13,
-        Html5QrcodeSupportedFormats.EAN_8,
-        Html5QrcodeSupportedFormats.UPC_A,
-        Html5QrcodeSupportedFormats.UPC_E,
-        Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.CODE_39,
-      ]
-    };
-    
-    const onSuccess = (decodedText) => {
+    if (!ZX) {
       stopScanner();
-      lookupProduct(decodedText);
-    };
-    const onFailure = () => {};
+      showToast('Scanner indisponible. Utilise la saisie manuelle.', { error: true });
+      return;
+    }
     
-    // Tentative caméra arrière
-    let started = false;
-    try {
-      await html5QrCode.start({ facingMode: { exact: "environment" } }, config, onSuccess, onFailure);
-      started = true;
-    } catch (e1) {
-      try {
-        await html5QrCode.start({ facingMode: "environment" }, config, onSuccess, onFailure);
-        started = true;
-      } catch (e2) {
-        const cams = await Html5Qrcode.getCameras();
-        if (cams && cams.length) {
-          // chercher une cam arrière par label
-          const back = cams.find(c => /back|rear|arrière|environment/i.test(c.label || ''));
-          await html5QrCode.start((back || cams[cams.length - 1]).id, config, onSuccess, onFailure);
-          started = true;
+    // S'assurer qu'aucun scan précédent n'est actif
+    stopScannerInternal();
+    
+    zxingReader = new ZX.BrowserMultiFormatReader();
+    
+    zxingControls = await zxingReader.decodeFromConstraints(
+      {
+        audio: false,
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      },
+      video,
+      (result, err) => {
+        if (result) {
+          const code = result.getText();
+          statusEl.textContent = '✅ Code détecté : ' + code;
+          stopScannerInternal();
+          
+          setTimeout(() => {
+            scanner.classList.remove('active');
+            lookupProduct(code);
+          }, 300);
         }
       }
-    }
+    );
     
-    if (started) {
-      statusEl.textContent = 'Recherche…';
-    } else {
-      throw new Error('Aucune caméra disponible');
-    }
-  } catch (err) {
-    console.error('Scanner error:', err);
-    let msg = 'Erreur caméra';
-    const errStr = (err.message || err.toString() || '').toLowerCase();
-    if (err.name === 'NotAllowedError' || /not allowed|permission|denied/i.test(errStr)) {
-      msg = 'Accès caméra refusé. Autorise dans les réglages du navigateur, puis recharge la page.';
-    } else if (err.name === 'NotFoundError' || /not found|no camera/i.test(errStr)) {
-      msg = 'Aucune caméra détectée sur cet appareil.';
-    } else if (/secure context|https/i.test(errStr)) {
-      msg = 'Le scan nécessite HTTPS. Héberge l\'appli sur Netlify ou GitHub Pages.';
-    } else if (err.message) {
-      msg = 'Erreur : ' + err.message;
-    }
+    statusEl.textContent = 'Recherche du code-barres…';
+    
+  } catch (e) {
+    console.error('Scanner error:', e);
     stopScanner();
+    
+    let msg = 'Accès caméra impossible. Vérifie Safari + HTTPS, ou utilise la saisie manuelle.';
+    const errStr = (e.message || e.toString() || '').toLowerCase();
+    if (e.name === 'NotAllowedError' || /not allowed|permission|denied/i.test(errStr)) {
+      msg = 'Accès caméra refusé. Autorise dans les réglages, puis recharge la page.';
+    } else if (e.name === 'NotFoundError' || /not found|no camera/i.test(errStr)) {
+      msg = 'Aucune caméra détectée sur cet appareil.';
+    }
     showToast(msg, { error: true, duration: 5000 });
   }
 }
 
-async function stopScanner() {
-  if (html5QrCode) {
-    try {
-      if (html5QrCode.isScanning) await html5QrCode.stop();
-      await html5QrCode.clear();
-    } catch (e) { console.warn('Stop:', e); }
-    html5QrCode = null;
+function stopScannerInternal() {
+  if (zxingControls) {
+    try { zxingControls.stop(); } catch(e) {}
+    zxingControls = null;
   }
+  if (zxingReader) {
+    try { zxingReader.reset(); } catch(e) {}
+    zxingReader = null;
+  }
+}
+
+function stopScanner() {
+  stopScannerInternal();
   document.getElementById('scanner').classList.remove('active');
 }
 
