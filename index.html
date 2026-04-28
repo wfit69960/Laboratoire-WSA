@@ -3011,29 +3011,33 @@ function showToast(msg, opts = {}) {
   window._toastTimer = setTimeout(() => t.classList.remove('show'), opts.duration || 3000);
 }
 
-// ============== SCANNER (ZXing - identique à la version qui marche) ==============
+// ============== SCANNER (ZXing - copie exacte d'index1) ==============
 async function startScanner() {
   const scanner = document.getElementById('scanner');
   const statusEl = document.getElementById('scan-status-text');
-  const video = document.getElementById('scanner-video');
   
+  // Afficher le scanner D'ABORD pour que la video soit dans le DOM rendu
   scanner.classList.add('active');
   statusEl.textContent = 'Initialisation caméra…';
   
+  // Petit délai pour laisser le navigateur rendre le video element
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
   try {
     const ZX = window.ZXing || window.ZXingBrowser;
-    
+
     if (!ZX) {
       stopScanner();
       showToast('Scanner indisponible. Utilise la saisie manuelle.', { error: true });
       return;
     }
-    
-    // S'assurer qu'aucun scan précédent n'est actif
+
     stopScannerInternal();
-    
+
+    const video = document.getElementById('scanner-video');
+
     zxingReader = new ZX.BrowserMultiFormatReader();
-    
+
     zxingControls = await zxingReader.decodeFromConstraints(
       {
         audio: false,
@@ -3047,9 +3051,11 @@ async function startScanner() {
       (result, err) => {
         if (result) {
           const code = result.getText();
+
           statusEl.textContent = '✅ Code détecté : ' + code;
+
           stopScannerInternal();
-          
+
           setTimeout(() => {
             scanner.classList.remove('active');
             lookupProduct(code);
@@ -3057,21 +3063,16 @@ async function startScanner() {
         }
       }
     );
-    
-    statusEl.textContent = 'Recherche du code-barres…';
-    
+
+    statusEl.textContent = '🔍 Recherche du code-barres...';
+
   } catch (e) {
     console.error('Scanner error:', e);
     stopScanner();
-    
-    let msg = 'Accès caméra impossible. Vérifie Safari + HTTPS, ou utilise la saisie manuelle.';
-    const errStr = (e.message || e.toString() || '').toLowerCase();
-    if (e.name === 'NotAllowedError' || /not allowed|permission|denied/i.test(errStr)) {
-      msg = 'Accès caméra refusé. Autorise dans les réglages, puis recharge la page.';
-    } else if (e.name === 'NotFoundError' || /not found|no camera/i.test(errStr)) {
-      msg = 'Aucune caméra détectée sur cet appareil.';
-    }
-    showToast(msg, { error: true, duration: 5000 });
+    showToast(
+      'Accès caméra impossible. Vérifie Safari + HTTPS, ou utilise la saisie manuelle.',
+      { error: true, duration: 5000 }
+    );
   }
 }
 
