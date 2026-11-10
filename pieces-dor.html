@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mes pièces d’or</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&display=swap">
+<style>
+:root{
+  --bg:#f4efee;--card:#fff;--ink:#2a1517;--mute:#7a6264;--line:#e2d6d5;
+  --crim:#8b1a26;--gold:#a8780c;--goldbg:#f6e9c6;--ok:#2f6b3f;--warn:#b5620a;--bad:#a3182a;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#150a0c;--card:#221114;--ink:#f1e6e4;--mute:#a88f90;--line:#3a2124;
+  --crim:#d4505c;--gold:#e0b341;--goldbg:#3a2c0e;--ok:#6fc084;--warn:#e69a45;--bad:#ef6a78;color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#150a0c;--card:#221114;--ink:#f1e6e4;--mute:#a88f90;--line:#3a2124;
+  --crim:#d4505c;--gold:#e0b341;--goldbg:#3a2c0e;--ok:#6fc084;--warn:#e69a45;--bad:#ef6a78;color-scheme:dark;}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
+main{max-width:480px;margin:0 auto;padding:18px 16px 40px}
+h1,h2,.num{font-family:"Cinzel",Georgia,serif}
+h1{font-size:19px;margin:0;letter-spacing:.04em;color:var(--crim)}
+h2{font-size:16px;margin:28px 0 10px;color:var(--crim)}
+.top{display:flex;justify-content:space-between;align-items:center}
+.theme{background:none;border:1px solid var(--line);color:var(--mute);border-radius:20px;padding:6px 12px;font-size:13px}
+.vault{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;text-align:center}
+.num{font-size:76px;line-height:1;font-weight:700;color:var(--gold)}
+.sub{color:var(--mute);font-size:14px}
+.bar{height:10px;background:var(--line);border-radius:6px;margin:14px 0 12px;overflow:hidden}
+.bar i{display:block;height:100%;width:100%;background:var(--ok);transition:width .3s,background .3s}
+.state{font-weight:600;min-height:3em}
+.row{display:flex;gap:8px;margin-top:12px}
+.row button{flex:1}
+button{font:inherit;cursor:pointer;color:var(--ink)}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:14px}
+.sec.on{background:var(--goldbg);border-color:var(--gold)}
+.spend{display:grid;gap:8px}
+.spend button{display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px 14px}
+.spend button b{font-family:"Cinzel",Georgia,serif;color:var(--bad);white-space:nowrap}
+.spend button small{display:block;color:var(--mute);font-size:13px}
+.spend button:active{transform:scale(.98)}
+.rules{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.rules li{background:var(--card);border-left:4px solid var(--crim);border-radius:8px;padding:11px 14px;font-size:15px}
+.rules li b{display:block}
+.rules li span{color:var(--mute);font-size:14px}
+.exit{background:var(--crim);color:#fff;border:0;border-radius:10px;padding:14px;width:100%;font-weight:600}
+.phrase{margin-top:10px;min-height:2.6em;font-style:italic;text-align:center;color:var(--gold)}
+.log{list-style:none;margin:0;padding:0;font-size:14px}
+.log li{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)}
+.log li span:last-child{color:var(--bad)}
+.link{background:none;border:0;color:var(--mute);text-decoration:underline;padding:8px 0;font-size:14px}
+.hand{margin-top:22px;text-align:center;border:2px dashed var(--gold);border-radius:12px;padding:14px;font-weight:700;color:var(--gold)}
+.hand small{display:block;color:var(--mute);font-weight:400;margin-top:4px}
+body{background:radial-gradient(120% 60% at 50% 0%,color-mix(in srgb,var(--crim) 22%,var(--bg)) 0%,var(--bg) 65%) no-repeat,var(--bg);min-height:100vh}
+h1{font-size:20px;letter-spacing:.14em;background:linear-gradient(90deg,var(--gold),var(--crim));-webkit-background-clip:text;background-clip:text;color:transparent}
+h2{display:flex;align-items:center;gap:12px;font-size:15px;letter-spacing:.08em;color:var(--gold)}
+h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--gold),transparent);opacity:.6}
+.theme{background:var(--card)}
+.vault{--ok:#7fd093;--warn:#f0a850;--bad:#ff7d8b;position:relative;overflow:hidden;border:1px solid #c9a227;border-radius:22px;padding:26px 20px 20px;color:#f4e8e5;background:radial-gradient(90% 70% at 50% 0%,#7d1a28 0%,#4a0d17 55%,#2a0910 100%);box-shadow:0 18px 40px -18px rgba(90,10,25,.7),inset 0 0 0 4px rgba(201,162,39,.12),inset 0 1px 0 rgba(255,255,255,.12)}
+.vault .sub{color:#e6cdc7}
+.coin{width:158px;height:158px;margin:0 auto 8px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 28%,#fff1b8 0%,#f0c24a 35%,#b98512 75%,#8a600a 100%);box-shadow:0 10px 24px rgba(0,0,0,.45),inset 0 0 0 5px rgba(255,255,255,.18),inset 0 0 0 9px rgba(120,80,5,.55),inset 0 0 0 11px rgba(255,236,160,.35)}
+.vault .num{font-size:62px;color:#4a2e04;text-shadow:0 1px 0 rgba(255,255,255,.45),0 -1px 0 rgba(0,0,0,.2)}
+.bar{height:12px;background:rgba(0,0,0,.35);box-shadow:inset 0 1px 3px rgba(0,0,0,.5)}
+.bar i{border-radius:6px;box-shadow:0 0 10px currentColor}
+.state{font-size:15px;padding:0 4px}
+.vault .sec{background:rgba(255,255,255,.07);border-color:rgba(201,162,39,.35);color:#f4e8e5;border-radius:12px}
+.vault .sec.on{background:rgba(224,179,65,.22);border-color:#e0b341;color:#fff3c9;font-weight:600}
+.spend button{border-radius:14px;padding:15px 16px;font-weight:500;box-shadow:0 1px 0 var(--line),0 6px 14px -10px rgba(90,10,25,.5);transition:transform .1s,border-color .15s}
+.spend button:hover{border-color:var(--gold)}
+.spend button b{font-size:18px;background:color-mix(in srgb,var(--bad) 14%,transparent);padding:4px 10px;border-radius:20px}
+.rules{counter-reset:r}
+.rules li{position:relative;padding:14px 14px 14px 56px;border:1px solid var(--line);border-left:0;border-radius:14px;overflow:hidden}
+.rules li::before{counter-increment:r;content:counter(r,upper-roman);position:absolute;left:0;top:0;bottom:0;width:42px;display:grid;place-items:center;font-family:"Cinzel",Georgia,serif;font-weight:700;color:#fff3c9;background:linear-gradient(180deg,var(--crim),#5c0f19)}
+.rules li b{font-family:"Cinzel",Georgia,serif;font-size:14.5px;letter-spacing:.02em}
+.exit{border:1px solid #e0b341;border-radius:14px;padding:16px;background:linear-gradient(180deg,#a3202f,#6e1220);box-shadow:0 10px 22px -12px rgba(120,10,30,.8),inset 0 1px 0 rgba(255,255,255,.2);font-size:16px}
+.exit:active{transform:scale(.98)}
+.phrase{font-family:"Cinzel",Georgia,serif;font-style:normal;font-size:15px}
+.hand{border-radius:16px;border:1.5px dashed var(--gold);background:color-mix(in srgb,var(--gold) 8%,transparent);font-family:"Cinzel",Georgia,serif;letter-spacing:.03em}
+.hand small{font-family:system-ui,sans-serif;letter-spacing:0}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <h1>MES PIÈCES D’OR</h1>
+    <button class="theme" id="theme" type="button">Thème</button>
+  </div>
+
+  <section class="vault" aria-live="polite">
+    <div class="coin"><div class="num" id="coins">100</div></div>
+    <div class="sub">pièces restantes sur <span id="budget">100</span></div>
+    <div class="bar"><i id="fill"></i></div>
+    <div class="state" id="state"></div>
+    <div class="row">
+      <button class="sec on" id="b100" type="button">Jour normal · 100</button>
+      <button class="sec" id="b70" type="button">Jour fatigué · 70</button>
+    </div>
+  </section>
+
+  <h2>Combien ça coûte ?</h2>
+  <div class="spend" id="spend"></div>
+
+  <h2>Quand ça monte</h2>
+  <button class="exit" id="exit" type="button">Me donner une phrase de sortie</button>
+  <div class="phrase" id="phrase" aria-live="polite"></div>
+
+  <h2>Les 5 règles. Relis-les.</h2>
+  <ol class="rules">
+    <li><b>Tu parles, tu donnes des armes.</b><span>Chaque confidence est une munition. Ils la rangent et la ressortent.</span></li>
+    <li><b>Ils écoutent et ils absorbent.</b><span>Ce que tu dis ne reste pas dans la pièce. Ça circule, déformé.</span></li>
+    <li><b>Aucune raison de prouver que tu as raison.</b><span>Gagner une discussion ici ne rapporte rien. Ça te coûte des pièces.</span></li>
+    <li><b>Ton agacement est une information offerte.</b><span>Visage neutre, voix basse. Celui qui s’énerve perd la main.</span></li>
+    <li><b>Le silence ne t’a jamais trahi.</b><span>Court, calme, puis tu pars. Tes mots seuls peuvent se retourner contre toi.</span></li>
+  </ol>
+
+  <div class="hand">Court. Calme. Pas d’opinion. Pas de justification. Je sors.<small>À écrire sur la main : « Combien ça coûte ? »</small></div>
+
+  <h2>Dépenses du jour</h2>
+  <ul class="log" id="log"></ul>
+  <div class="row">
+    <button class="link" id="undo" type="button">Annuler la dernière</button>
+    <button class="link" id="reset" type="button">Nouvelle journée</button>
+  </div>
+</main>
+
+<script>
+(function(){
+  var COSTS=[
+    {n:"Bonjour, merci",d:"Ça te protège, presque gratuit",c:1},
+    {n:"Échange de travail",d:"Dossier, question, réunion",c:3},
+    {n:"Discussion d’opinion non voulue",d:"Elle ne rapporte rien",c:15},
+    {n:"Justification ou correction",d:"Le piège le plus coûteux",c:30},
+    {n:"Agacement visible ou dispute",d:"Tu es à sec pour la journée",c:100}
+  ];
+  var PHRASES=[
+    "« Je vois les choses autrement, mais je m’y remets. »",
+    "« Intéressant. Je dois finir ça. »",
+    "« On n’est pas d’accord, ce n’est pas grave. »",
+    "« Je préfère qu’on en reparle plus tard. »",
+    "« Je reste sur le dossier. »"
+  ];
+  var KEY="pieces-dor-v1";
+  var S={day:today(),budget:100,log:[]};
+  function today(){return new Date().toISOString().slice(0,10)}
+  function load(){
+    try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&o.day===today())S=o}}catch(e){}
+  }
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+  function left(){var t=0;S.log.forEach(function(x){t+=x.c});return Math.max(0,S.budget-t)}
+  var $=function(id){return document.getElementById(id)};
+
+  function render(){
+    var l=left(),p=l/S.budget*100;
+    $("coins").textContent=l;
+    $("budget").textContent=S.budget;
+    var f=$("fill");f.style.width=p+"%";
+    var col="var(--ok)",msg="Forteresse intacte. Dépense avec soin.";
+    if(l===0){col="var(--bad)";msg="À sec. Plus un mot inutile : tu sors, tu respires."}
+    else if(p<30){col="var(--bad)";msg="Mode fermé. Travail uniquement, phrases courtes."}
+    else if(p<60){col="var(--warn)";msg="Prudence. Chaque pièce compte maintenant."}
+    f.style.background=col;
+    $("state").textContent=msg;$("state").style.color=col;
+    $("b100").className="sec"+(S.budget===100?" on":"");
+    $("b70").className="sec"+(S.budget===70?" on":"");
+    var ul=$("log");ul.innerHTML="";
+    if(!S.log.length){var e=document.createElement("li");e.innerHTML="<span>Rien dépensé pour l’instant.</span><span></span>";e.lastChild.textContent="";ul.appendChild(e)}
+    S.log.slice().reverse().forEach(function(x){
+      var li=document.createElement("li"),a=document.createElement("span"),b=document.createElement("span");
+      a.textContent=x.t+" · "+x.n;b.textContent="−"+x.c;li.appendChild(a);li.appendChild(b);ul.appendChild(li);
+    });
+    if(l>0&&S.log.length){$("state").textContent+=" Tu gardes "+l+" pièces pour ce soir."}
+  }
+
+  var box=$("spend");
+  COSTS.forEach(function(x){
+    var b=document.createElement("button");b.type="button";
+    var d=document.createElement("div");
+    var t=document.createElement("span");t.textContent=x.n;
+    var s=document.createElement("small");s.textContent=x.d;
+    d.appendChild(t);d.appendChild(s);
+    var c=document.createElement("b");c.textContent="−"+x.c;
+    b.appendChild(d);b.appendChild(c);
+    b.onclick=function(){
+      var now=new Date(),h=("0"+now.getHours()).slice(-2)+"h"+("0"+now.getMinutes()).slice(-2);
+      S.log.push({n:x.n,c:Math.min(x.c,left()),t:h});save();render();
+      if(x.c>=15){$("phrase").textContent="Respire. "+PHRASES[Math.floor(Math.random()*PHRASES.length)]}
+    };
+    box.appendChild(b);
+  });
+
+  $("b100").onclick=function(){S.budget=100;save();render()};
+  $("b70").onclick=function(){S.budget=70;save();render()};
+  $("exit").onclick=function(){$("phrase").textContent=PHRASES[Math.floor(Math.random()*PHRASES.length)]};
+  $("undo").onclick=function(){S.log.pop();save();render()};
+  $("reset").onclick=function(){S={day:today(),budget:S.budget,log:[]};save();render();$("phrase").textContent=""};
+  $("theme").onclick=function(){
+    var r=document.documentElement,dark=r.getAttribute("data-theme")==="dark"||(!r.getAttribute("data-theme")&&matchMedia("(prefers-color-scheme: dark)").matches);
+    r.setAttribute("data-theme",dark?"light":"dark");
+  };
+  load();render();
+})();
+</script>
+</body>
+</html>
